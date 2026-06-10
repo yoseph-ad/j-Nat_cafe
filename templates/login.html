@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="J-net Cafe Admin Login. Authenticate to manage cafe menu items.">
+    <title>J-net Cafe | Admin Login</title>
+    <!-- Master CSS Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(12,7,5,0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .login-card h2 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(12, 7, 5, 0.6);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .error-message {
+            background: rgba(229, 107, 85, 0.1);
+            border: 1px solid rgba(229, 107, 85, 0.2);
+            color: var(--accent);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .hint-box {
+            margin-top: 24px;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(212, 163, 115, 0.05);
+            border: 1px dashed rgba(212, 163, 115, 0.2);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .hint-box span {
+            color: var(--primary);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card glass-card">
+        <div class="logo-icon">
+            <i class="fa-solid fa-mug-hot"></i>
+        </div>
+        <h2>J-net Admin</h2>
+        <p>Authenticate to manage menu database</p>
+
+        {% if error %}
+        <div class="error-message">
+            <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/admin/login">
+            <div class="form-group">
+                <label for="password">Portal Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autofocus>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                <i class="fa-solid fa-unlock-keyhole"></i> Enter Dashboard
+            </button>
+        </form>
+
+        <div class="hint-box">
+            <i class="fa-solid fa-circle-info"></i> Default Local Password: <span>jnet123</span> (If not changed)
+        </div>
+    </div>
+
+</body>
+</html>

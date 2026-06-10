@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Welcome to J-net Cafe. Experience premium traditional Jebena Buna alongside modern barista creations and authentic Ethiopian breakfast in a cozy, warm environment.">
+    <title>J-net Cafe | Coffee & Culinary Craft</title>
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Font Awesome Icons for premium style -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo" id="nav-logo">
+                <i class="fa-solid fa-mug-hot"></i> J-<span>Nat</span>
+            </a>
+            <nav>
+                <ul id="nav-links">
+                    <li><a href="#hero" class="active">Home</a></li>
+                    <li><a href="#about">Our Story</a></li>
+                    <li><a href="#menu">Menu</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
+                    <li><a href="/admin" class="btn btn-outline btn-sm" style="border-radius: 50px; padding: 6px 16px;"><i class="fa-solid fa-user-gear"></i> Admin Portal</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <span class="hero-badge">Est. 2026</span>
+                <h1>Where Tradition <span>Meets Modern Tastings</span></h1>
+                <p class="hero-desc">
+                    Nestled in the heart of the city, J-net Cafe offers a sanctuary for coffee lovers. From the rich heritage of the traditional Jebena brew to custom barista-crafted macchiatos and savory local delicacies.
+                </p>
+                <div class="hero-actions">
+                    <a href="#menu" class="btn btn-primary" id="hero-btn-menu">
+                        <i class="fa-solid fa-compass"></i> Explore Menu
+                    </a>
+                    <a href="#about" class="btn btn-outline" id="hero-btn-about">
+                        Our Story
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image-wrapper">
+                <img src="{{ url_for('static', filename='images/macchiato.png') }}" alt="Ethiopian Macchiato at J-net Cafe" class="hero-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">About J-Nat</span>
+                <h2>Crafting Cozy Moments</h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-img-box">
+                    <img src="{{ url_for('static', filename='images/jebena_coffee.png') }}" alt="Traditional Ethiopian Jebena Buna Ceremony" class="about-img">
+                </div>
+                <div class="about-info">
+                    <h3>The Soul of Ethiopian Coffee</h3>
+                    <p>
+                        At J-net, we believe coffee is more than a beverage; it is a ritual, a conversation, and a community. Our beans are sourced directly from the fertile highlands of Ethiopia, roasted to perfection, and brewed fresh daily.
+                    </p>
+                    <p>
+                        Whether you are here for a quick morning kickstart, a business meeting, or a slow traditional Jebena Buna ceremony with frankincense smoke filling the room, we cater to every taste with warmth and authentic hospitality.
+                    </p>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <div class="feature-icon"><i class="fa-solid fa-leaf"></i></div>
+                            <div class="feature-text">
+                                <h4>100% Organic Beans</h4>
+                                <p>Sourced from Yirgacheffe and Sidamo highlands.</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon"><i class="fa-solid fa-heart"></i></div>
+                            <div class="feature-text">
+                                <h4>Made with Passion</h4>
+                                <p>Baristas trained to extract the perfect shot every time.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="menu-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Our Menu</span>
+                <h2>Taste the Heritage</h2>
+            </div>
+
+            <!-- Category Tabs -->
+            <div class="menu-tabs">
+                <button class="tab-btn active" data-target="all" id="tab-all">All Items</button>
+                <button class="tab-btn" data-target="Drinks" id="tab-drinks">Drinks</button>
+                <button class="tab-btn" data-target="Food" id="tab-food">Food</button>
+            </div>
+
+            <!-- Menu Grid -->
+            <div class="menu-grid" id="menu-container">
+                <!-- Drink Items -->
+                {% for item in drink_items %}
+                <div class="menu-item glass-card menu-item-card" data-category="Drinks" style="transition: var(--transition-smooth);">
+                    <div class="menu-img-wrapper">
+                        <span class="menu-item-badge">{{ item.category }}</span>
+                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="menu-item-img">
+                    </div>
+                    <div class="menu-info">
+                        <div class="menu-title-row">
+                            <h3>{{ item.name }}</h3>
+                            <span class="menu-price">{{ item.price | int }} Birr</span>
+                        </div>
+                        <p class="menu-desc">{{ item.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Food Items -->
+                {% for item in food_items %}
+                <div class="menu-item glass-card menu-item-card" data-category="Food" style="transition: var(--transition-smooth);">
+                    <div class="menu-img-wrapper">
+                        <span class="menu-item-badge">{{ item.category }}</span>
+                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="menu-item-img">
+                    </div>
+                    <div class="menu-info">
+                        <div class="menu-title-row">
+                            <h3>{{ item.name }}</h3>
+                            <span class="menu-price">{{ item.price | int }} Birr</span>
+                        </div>
+                        <p class="menu-desc">{{ item.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="gallery-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Visual Journey</span>
+                <h2>Our Gallery</h2>
+            </div>
+            
+            <div class="gallery-grid">
+                {% if gallery_images | length == 0 %}
+                <!-- Fallback default images if gallery is empty -->
+                <div class="gallery-item">
+                    <img src="{{ url_for('static', filename='images/macchiato.png') }}" alt="Ethiopian Macchiato">
+                    <div class="gallery-overlay">
+                        <div class="gallery-overlay-content">
+                            <p>Ethiopian Macchiato</p>
+                            <span>Barista Masterpiece</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="{{ url_for('static', filename='images/jebena_coffee.png') }}" alt="Jebena Buna">
+                    <div class="gallery-overlay">
+                        <div class="gallery-overlay-content">
+                            <p>Traditional Jebena Buna</p>
+                            <span>Clay Pot Brew</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="{{ url_for('static', filename='images/layered_juice.png') }}" alt="Layered Juice">
+                    <div class="gallery-overlay">
+                        <div class="gallery-overlay-content">
+                            <p>Layered Juice</p>
+                            <span>Fresh Avocado & Mango</span>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                {% for img in gallery_images %}
+                <div class="gallery-item">
+                    <img src="{{ img.image_url }}" alt="{{ img.caption or 'J-net Cafe Gallery Photo' }}">
+                    <div class="gallery-overlay">
+                        <div class="gallery-overlay-content">
+                            <p>{{ img.caption or 'J-net Cafe Gallery Photo' }}</p>
+                            <span>Gallery Upload</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <h2 class="logo"><i class="fa-solid fa-mug-hot"></i> J-<span>net</span></h2>
+                <p>Connecting people and cultures through the world's finest coffee and delicious bites.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#hero">Home</a></li>
+                    <li><a href="#about">Our Story</a></li>
+                    <li><a href="#menu">Our Menu</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
+                    <li><a href="/admin">Admin Dashboard</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact & Hours</h4>
+                <div class="footer-info">
+                    <p><i class="fa-solid fa-clock"></i> Mon - Sun: <span>7:00 AM - 10:00 PM</span></p>
+                    <p><i class="fa-solid fa-location-dot"></i> Bole, <span>Addis Ababa, Ethiopia</span></p>
+                    <p><i class="fa-solid fa-phone"></i> <span>+251 911 223 344</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 J-net Cafe. Crafted with warm coffee tones. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Dynamic Tab Filtering & Navbar Active States -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const menuItems = document.querySelectorAll('.menu-item-card');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active from all buttons
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const target = btn.getAttribute('data-target');
+
+                    menuItems.forEach(item => {
+                        const category = item.getAttribute('data-category');
+                        if (target === 'all' || category === target) {
+                            item.style.display = 'flex';
+                            setTimeout(() => {
+                                item.style.opacity = '1';
+                                item.style.transform = 'scale(1)';
+                            }, 50);
+                        } else {
+                            item.style.opacity = '0';
+                            item.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                item.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                });
+            });
+
+            // Smooth active links indicator in Header
+            const sections = document.querySelectorAll('section');
+            const navLi = document.querySelectorAll('nav ul li a');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= (sectionTop - 150)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLi.forEach(a => {
+                    a.classList.remove('active');
+                    if (a.getAttribute('href') === `#${current}`) {
+                        a.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

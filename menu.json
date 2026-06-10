@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "name": "Ethiopian Macchiato",
+    "category": "Drinks",
+    "price": 100.0,
+    "description": "Rich espresso layered with creamy, thick steamed milk, served in a traditional glass.",
+    "image_url": "/static/images/macchiato.png"
+  },
+  {
+    "id": "2",
+    "name": "Jebena Buna (Traditional Coffee)",
+    "category": "Drinks",
+    "price": 40,
+    "description": "Authentic organic coffee slow-brewed in a clay pot (jebena) and infused with a hint of cardamom.",
+    "image_url": "/static/images/jebena_coffee.png"
+  },
+  {
+    "id": "3",
+    "name": "Layered Mango & Avocado Juice",
+    "category": "Drinks",
+    "price": 95,
+    "description": "Stunning fresh layered juice smoothie with local avocado and mango, thick and refreshing.",
+    "image_url": "/static/images/layered_juice.png"
+  },
+  {
+    "id": "4",
+    "name": "Special Ful",
+    "category": "Food",
+    "price": 120,
+    "description": "Mashed fava beans with olive oil, jalapeños, tomatoes, onions, and crumbled feta cheese. Served hot with fresh warm bread.",
+    "image_url": "/static/images/special_ful.png"
+  },
+  {
+    "id": "5",
+    "name": "Chechebsa (Kitta Fit-Fit)",
+    "category": "Food",
+    "price": 140,
+    "description": "Shredded flatbread pan-fried in spiced butter (niter kibbeh) and berbere, drizzled with honey, and served with fresh yogurt.",
+    "image_url": "/static/images/chechebsa.png"
+  }
+]

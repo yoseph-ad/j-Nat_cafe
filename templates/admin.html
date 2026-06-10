@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="J-net Cafe Admin Dashboard. Manage menu items, prices, and image assets.">
+    <title>J-net Cafe | Admin Dashboard</title>
+    <!-- Master CSS Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Admin Specific Custom CSS -->
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            padding-top: 120px;
+            padding-bottom: 80px;
+        }
+
+        .dashboard-card {
+            padding: 30px;
+            border-radius: var(--radius-md);
+        }
+
+        .dashboard-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(12, 7, 5, 0.6);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4a373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Table/List Styling */
+        .item-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .admin-item-card {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            gap: 20px;
+        }
+
+        .admin-item-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .admin-item-details {
+            flex-grow: 1;
+        }
+
+        .admin-item-details h3 {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-item-category {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            background: rgba(212, 163, 115, 0.1);
+            color: var(--primary);
+            border-radius: 50px;
+            border: 1px solid rgba(212, 163, 115, 0.2);
+        }
+
+        .admin-item-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            max-width: 400px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .admin-item-price {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .admin-item-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+            z-index: 2000;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 30px;
+            transform: translateY(20px);
+            transition: var(--transition-smooth);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .modal-overlay.open .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .close-modal-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .close-modal-btn:hover {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .admin-layout {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .admin-item-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .admin-item-actions {
+                width: 100%;
+                justify-content: flex-end;
+                border-top: 1px solid rgba(255,255,255,0.05);
+                padding-top: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container nav-container">
+            <a href="/" class="logo" id="nav-logo">
+                <i class="fa-solid fa-mug-hot"></i> J-<span>net</span> <span style="font-size: 0.9rem; font-family: var(--font-body); font-weight: 500; margin-left: 10px; border-left: 1px solid var(--border); padding-left: 10px;">Admin Dashboard</span>
+            </a>
+            <nav>
+                <ul id="nav-links" style="align-items: center;">
+                    <li><a href="/" id="nav-back"><i class="fa-solid fa-arrow-left-long"></i> Back to Cafe</a></li>
+                    <li><a href="/admin/logout" class="btn btn-danger btn-sm" style="border-radius: 50px; padding: 6px 16px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container" style="padding-top: 120px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" style="padding: 15px; margin-bottom: 20px; border-radius: var(--radius-sm); {% if category == 'success' %}background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.2); color: #28a745;{% else %}background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.2); color: #dc3545;{% endif %} display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="admin-layout" style="padding-top: 0;">
+            
+            <!-- Left Side: Add Form & Settings -->
+            <aside style="display: flex; flex-direction: column; gap: 30px;">
+                <div class="glass-card dashboard-card">
+                    <h2><i class="fa-solid fa-circle-plus"></i> Add New Item</h2>
+                    <form action="/admin/add" method="POST" id="add-item-form" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="add-name">Item Name</label>
+                            <input type="text" id="add-name" name="name" class="form-control" placeholder="e.g. Avocado Salad" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-category">Category</label>
+                            <select id="add-category" name="category" class="form-control" required>
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="Food">Food</option>
+                                <option value="Drinks">Drinks</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-price">Price (Birr)</label>
+                            <input type="number" id="add-price" name="price" class="form-control" placeholder="e.g. 120" min="0" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-image-file">Image Photo (Upload from Phone/Device)</label>
+                            <input type="file" id="add-image-file" name="image_file" class="form-control" accept="image/*" style="padding: 8px 16px;">
+                        </div>
+                        <div class="form-group">
+                            <label for="add-image">Or Image URL / Path</label>
+                            <input type="text" id="add-image" name="image_url" class="form-control" placeholder="e.g. /static/images/macchiato.png">
+                        </div>
+                        <div class="form-group">
+                            <label for="add-desc">Description</label>
+                            <textarea id="add-desc" name="description" class="form-control" placeholder="Brief description of the item..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="btn-submit-add">
+                            <i class="fa-solid fa-plus"></i> Add Item
+                        </button>
+                    </form>
+                </div>
+
+                <div class="glass-card dashboard-card">
+                    <h2><i class="fa-solid fa-lock"></i> Change Password</h2>
+                    <form action="/admin/change-password" method="POST" id="change-password-form">
+                        <div class="form-group">
+                            <label for="current-password">Current Password</label>
+                            <input type="password" id="current-password" name="current_password" class="form-control" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">New Password</label>
+                            <input type="password" id="new-password" name="new_password" class="form-control" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirm New Password</label>
+                            <input type="password" id="confirm-password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="btn-submit-password">
+                            <i class="fa-solid fa-key"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Right Side: Item Management List & Gallery Management -->
+            <section style="display: flex; flex-direction: column; gap: 40px;">
+                <!-- Manage Menu Items -->
+                <div class="glass-card dashboard-card">
+                    <h2><i class="fa-solid fa-list-check"></i> Manage Menu Items ({{ menu | length }})</h2>
+                    
+                    <div class="item-list-container" id="menu-items-list">
+                        {% if menu | length == 0 %}
+                        <p style="text-align: center; color: var(--text-muted); padding: 40px 0;">No items found in the menu database. Try adding one!</p>
+                        {% endif %}
+                        
+                        {% for item in menu %}
+                        <div class="admin-item-card glass-card">
+                            <img src="{{ item.image_url }}" alt="{{ item.name }}" class="admin-item-img">
+                            <div class="admin-item-details">
+                                <h3>
+                                    {{ item.name }} 
+                                    <span class="admin-item-category">{{ item.category }}</span>
+                                </h3>
+                                <p class="admin-item-desc">{{ item.description }}</p>
+                                <div class="admin-item-price">{{ item.price | int }} Birr</div>
+                            </div>
+                            <div class="admin-item-actions">
+                                <!-- Edit Button triggers Javascript Modal opening -->
+                                <button class="btn btn-outline btn-sm edit-btn" 
+                                        data-id="{{ item.id }}" 
+                                        data-name="{{ item.name }}" 
+                                        data-category="{{ item.category }}" 
+                                        data-price="{{ item.price }}" 
+                                        data-image="{{ item.image_url }}" 
+                                        data-desc="{{ item.description }}">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                                
+                                <!-- Delete Form (POST method for safety) -->
+                                <form action="/admin/delete/{{ item.id }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this item?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fa-solid fa-trash-can"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Manage Gallery -->
+                <div class="glass-card dashboard-card">
+                    <h2><i class="fa-solid fa-images"></i> Manage Gallery ({{ gallery_images | length }})</h2>
+                    
+                    <!-- Add to Gallery Form -->
+                    <form action="/admin/gallery/add" method="POST" enctype="multipart/form-data" style="margin-bottom: 30px; padding-bottom: 24px; border-bottom: 1px solid var(--border);">
+                        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <label for="gallery-image-file">Upload Gallery Photo</label>
+                                <input type="file" id="gallery-image-file" name="gallery_file" class="form-control" accept="image/*" required style="padding: 8px 16px;">
+                            </div>
+                            <div>
+                                <label for="gallery-caption">Caption (Optional)</label>
+                                <input type="text" id="gallery-caption" name="caption" class="form-control" placeholder="e.g. Traditional jebena setup">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Upload to Gallery
+                        </button>
+                    </form>
+
+                    <!-- Gallery Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px;">
+                        {% if gallery_images | length == 0 %}
+                        <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px 0;">No photos in the gallery. Try uploading one!</p>
+                        {% endif %}
+                        
+                        {% for img in gallery_images %}
+                        <div class="glass-card" style="position: relative; border-radius: var(--radius-sm); overflow: hidden; aspect-ratio: 1;">
+                            <img src="{{ img.image_url }}" alt="{{ img.caption }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            
+                            <!-- Delete button hovering on image -->
+                            <form action="/admin/gallery/delete/{{ img.id }}" method="POST" onsubmit="return confirm('Delete this gallery photo?');" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                                <button type="submit" class="btn btn-danger btn-sm" style="padding: 6px; border-radius: 50%; min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: rgba(229, 107, 85, 0.9); border: none; color: white;">
+                                    <i class="fa-solid fa-trash-can" style="font-size: 0.8rem;"></i>
+                                </button>
+                            </form>
+                            
+                            {% if img.caption %}
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 4px 8px; font-size: 0.75rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; text-align: center;">
+                                {{ img.caption }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal for Editing Items -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Edit Menu Item</h3>
+                <button class="close-modal-btn" id="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="edit-item-form" method="POST" action="" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="edit-name">Item Name</label>
+                    <input type="text" id="edit-name" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-category">Category</label>
+                    <select id="edit-category" name="category" class="form-control" required>
+                        <option value="Food">Food</option>
+                        <option value="Drinks">Drinks</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-price">Price (Birr)</label>
+                    <input type="number" id="edit-price" name="price" class="form-control" min="0" step="any" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-image-file">Image Photo (Upload from Phone/Device)</label>
+                    <input type="file" id="edit-image-file" name="image_file" class="form-control" accept="image/*" style="padding: 8px 16px;">
+                </div>
+                <div class="form-group">
+                    <label for="edit-image">Or Image URL / Path</label>
+                    <input type="text" id="edit-image" name="image_url" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit-desc">Description</label>
+                    <textarea id="edit-desc" name="description" class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;" id="btn-submit-edit">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript to Handle Edit Modal Mechanics -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const editModal = document.getElementById('edit-modal');
+            const editForm = document.getElementById('edit-item-form');
+            const closeModalBtn = document.getElementById('close-modal');
+            const editButtons = document.querySelectorAll('.edit-btn');
+            
+            // Elements in the edit form
+            const editNameInput = document.getElementById('edit-name');
+            const editCategoryInput = document.getElementById('edit-category');
+            const editPriceInput = document.getElementById('edit-price');
+            const editImageFileInput = document.getElementById('edit-image-file');
+            const editImageInput = document.getElementById('edit-image');
+            const editDescInput = document.getElementById('edit-desc');
+
+            // Open edit modal and populate data
+            editButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const itemId = button.getAttribute('data-id');
+                    const itemName = button.getAttribute('data-name');
+                    const itemCategory = button.getAttribute('data-category');
+                    const itemPrice = button.getAttribute('data-price');
+                    const itemImage = button.getAttribute('data-image');
+                    const itemDesc = button.getAttribute('data-desc');
+
+                    // Set action URL on form
+                    editForm.setAttribute('action', `/admin/edit/${itemId}`);
+
+                    // Fill fields
+                    editNameInput.value = itemName;
+                    editCategoryInput.value = itemCategory;
+                    editPriceInput.value = itemPrice;
+                    editImageFileInput.value = ''; // Reset file input
+                    editImageInput.value = itemImage;
+                    editDescInput.value = itemDesc;
+
+                    // Open overlay
+                    editModal.classList.add('open');
+                });
+            });
+
+            // Close modal functions
+            const closeModal = () => {
+                editModal.classList.remove('open');
+            };
+
+            closeModalBtn.addEventListener('click', closeModal);
+            
+            // Close modal when clicking on the overlay background
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) {
+                    closeModal();
+                }
+            });
+
+            // Close on ESC key press
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
