@@ -16,6 +16,16 @@ PASSWORD_FILE = os.path.join(os.path.dirname(__file__), 'password.txt')
 DEFAULT_PASSWORD = 'jnet123'
 
 def get_admin_password():
+    if 'KV_URL' in os.environ:
+        try:
+            import redis
+            r = redis.from_url(os.environ['KV_URL'])
+            pw = r.get("jnet_password")
+            if pw:
+                return pw.decode('utf-8').strip()
+        except Exception as e:
+            print(f"Error loading password from KV: {e}")
+
     if not os.path.exists(PASSWORD_FILE):
         try:
             with open(PASSWORD_FILE, 'w', encoding='utf-8') as f:
@@ -31,13 +41,23 @@ def get_admin_password():
         return DEFAULT_PASSWORD
 
 def set_admin_password(new_password):
+    kv_saved = False
+    if 'KV_URL' in os.environ:
+        try:
+            import redis
+            r = redis.from_url(os.environ['KV_URL'])
+            r.set("jnet_password", new_password.strip())
+            kv_saved = True
+        except Exception as e:
+            print(f"Error saving password to KV: {e}")
+
     try:
         with open(PASSWORD_FILE, 'w', encoding='utf-8') as f:
             f.write(new_password.strip())
         return True
     except Exception as e:
         print(f"Error saving password file: {e}")
-        return False
+        return kv_saved
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -46,6 +66,19 @@ def allowed_file(filename):
 def save_uploaded_file(file):
     if file and file.filename != '' and allowed_file(file.filename):
         filename = secure_filename(file.filename)
+        
+        # Check if we should use Vercel Blob
+        if 'BLOB_READ_WRITE_TOKEN' in os.environ:
+            try:
+                import vercel.blob
+                file_data = file.read()
+                result = vercel.blob.put(filename, file_data, access='public', add_random_suffix=True)
+                return result.url
+            except Exception as e:
+                print(f"Error uploading to Vercel Blob: {e}")
+                # Reset file cursor for local fallback
+                file.seek(0)
+
         ext = filename.rsplit('.', 1)[1].lower()
         unique_filename = f"{uuid.uuid4().hex}.{ext}"
         filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
@@ -64,6 +97,16 @@ def login_required(f):
 DB_FILE = os.path.join(os.path.dirname(__file__), 'menu.json')
 
 def load_menu():
+    if 'KV_URL' in os.environ:
+        try:
+            import redis
+            r = redis.from_url(os.environ['KV_URL'])
+            data = r.get("jnet_menu")
+            if data:
+                return json.loads(data.decode('utf-8'))
+        except Exception as e:
+            print(f"Error loading menu from KV: {e}")
+
     if not os.path.exists(DB_FILE):
         return []
     try:
@@ -74,17 +117,37 @@ def load_menu():
         return []
 
 def save_menu(menu_data):
+    kv_saved = False
+    if 'KV_URL' in os.environ:
+        try:
+            import redis
+            r = redis.from_url(os.environ['KV_URL'])
+            r.set("jnet_menu", json.dumps(menu_data, ensure_ascii=False))
+            kv_saved = True
+        except Exception as e:
+            print(f"Error saving menu to KV: {e}")
+
     try:
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(menu_data, f, indent=2, ensure_ascii=False)
         return True
     except Exception as e:
         print(f"Error saving menu: {e}")
-        return False
+        return kv_saved
 
 GALLERY_FILE = os.path.join(os.path.dirname(__file__), 'gallery.json')
 
 def load_gallery():
+    if 'KV_URL' in os.environ:
+        try:
+            import redis
+            r = redis.from_url(os.environ['KV_URL'])
+            data = r.get("jnet_gallery")
+            if data:
+                return json.loads(data.decode('utf-8'))
+        except Exception as e:
+            print(f"Error loading gallery from KV: {e}")
+
     if not os.path.exists(GALLERY_FILE):
         try:
             with open(GALLERY_FILE, 'w', encoding='utf-8') as f:
@@ -100,13 +163,23 @@ def load_gallery():
         return []
 
 def save_gallery(gallery_data):
+    kv_saved = False
+    if 'KV_URL' in os.environ:
+        try:
+            import redis
+            r = redis.from_url(os.environ['KV_URL'])
+            r.set("jnet_gallery", json.dumps(gallery_data, ensure_ascii=False))
+            kv_saved = True
+        except Exception as e:
+            print(f"Error saving gallery to KV: {e}")
+
     try:
         with open(GALLERY_FILE, 'w', encoding='utf-8') as f:
             json.dump(gallery_data, f, indent=2, ensure_ascii=False)
         return True
     except Exception as e:
         print(f"Error saving gallery: {e}")
-        return False
+        return kv_saved
 
 @app.route('/')
 def index():
@@ -237,11 +310,14 @@ def delete_item(item_id):
     
     # Find the item to get the filepath
     filepath_to_delete = None
+    vercel_blob_to_delete = None
     for item in menu:
         if item['id'] == item_id:
             image_url = item.get('image_url', '')
             if image_url.startswith('/static/uploads/'):
                 filepath_to_delete = os.path.join(os.path.dirname(__file__), image_url.lstrip('/'))
+            elif image_url.startswith('https://') and 'public.blob.vercel-storage.com' in image_url:
+                vercel_blob_to_delete = image_url
             break
             
     updated_menu = [item for item in menu if item['id'] != item_id]
@@ -256,6 +332,13 @@ def delete_item(item_id):
             os.remove(filepath_to_delete)
         except Exception as e:
             print(f"Error deleting file {filepath_to_delete}: {e}")
+
+    if vercel_blob_to_delete and 'BLOB_READ_WRITE_TOKEN' in os.environ:
+        try:
+            import vercel.blob
+            vercel.blob.delete(vercel_blob_to_delete)
+        except Exception as e:
+            print(f"Error deleting Vercel Blob {vercel_blob_to_delete}: {e}")
             
     return redirect(url_for('admin'))
 
@@ -335,11 +418,14 @@ def delete_gallery_item(img_id):
     
     # Find the item to get the filepath
     filepath_to_delete = None
+    vercel_blob_to_delete = None
     for item in gallery:
         if item['id'] == img_id:
             image_url = item.get('image_url', '')
             if image_url.startswith('/static/uploads/'):
                 filepath_to_delete = os.path.join(os.path.dirname(__file__), image_url.lstrip('/'))
+            elif image_url.startswith('https://') and 'public.blob.vercel-storage.com' in image_url:
+                vercel_blob_to_delete = image_url
             break
             
     updated_gallery = [item for item in gallery if item['id'] != img_id]
@@ -355,6 +441,13 @@ def delete_gallery_item(img_id):
             os.remove(filepath_to_delete)
         except Exception as e:
             print(f"Error deleting file {filepath_to_delete}: {e}")
+
+    if vercel_blob_to_delete and 'BLOB_READ_WRITE_TOKEN' in os.environ:
+        try:
+            import vercel.blob
+            vercel.blob.delete(vercel_blob_to_delete)
+        except Exception as e:
+            print(f"Error deleting Vercel Blob {vercel_blob_to_delete}: {e}")
             
     flash("Gallery photo deleted successfully.", "success")
     return redirect(url_for('admin'))
